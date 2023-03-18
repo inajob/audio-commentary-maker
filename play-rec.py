@@ -47,7 +47,7 @@ stream = p.open(format = FORMAT,
 def playFrames(fileName):
     playFrame = 0 # どこまで再生したか
     filePart = os.path.splitext(os.path.basename(fileName))
-    print(filePart)
+    print("playFrames", filePart)
     # 再生準備
     wf = wave.open(fileName, 'rb')
     playStream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
@@ -69,7 +69,7 @@ def playFrames(fileName):
             playFrames(os.path.join("out", filePart[0] + "-" + str(playFrame)) + ".wav")
 
         # 音データの取得
-        data = stream.read(chunk)
+        data = stream.read(chunk, exception_on_overflow = False)
         # ndarrayに変換
         x = np.frombuffer(data, dtype="int16") / 32768.0
     
