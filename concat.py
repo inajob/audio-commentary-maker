@@ -26,7 +26,7 @@ of.setframerate(RATE)
 
 def writeFrames(fileName):
   filePart = os.path.splitext(os.path.basename(fileName))
-  wf = wave.open(baseFile, 'rb')
+  wf = wave.open(fileName, 'rb')
   playFrame = 0
   print(filePart)
   while True:
