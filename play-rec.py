@@ -1,23 +1,25 @@
 import pyaudio
 import os
+import sys
 import wave
 import numpy as np
 from datetime import datetime
 
 CHUNK_SIZE = 2**10
-baseFile = "turkish-march.wav"
+baseFile = sys.argv[1]
 
 voices = {}
 # 既存のオーディオコメンタリーファイルの検索
 files = os.listdir("out")
 for x in files:
     part = os.path.splitext(x)
-    part2 = part[0].split("-")
-    fileName = "-".join(part2[:-1])
-    frame = int(part2[-1])
-    voices.setdefault(fileName, [])
-    voices[fileName].append(frame)
-
+    print(part)
+    if part[1] == ".wav":
+        part2 = part[0].split("-")
+        fileName = "-".join(part2[:-1])
+        frame = int(part2[-1])
+        voices.setdefault(fileName, [])
+        voices[fileName].append(frame)
 
 p = pyaudio.PyAudio()
 
@@ -39,7 +41,6 @@ stream = p.open(format = FORMAT,
     frames_per_buffer = chunk
 )
 
-
 def playFrames(fileName):
     playFrame = 0 # どこまで再生したか
     filePart = os.path.splitext(os.path.basename(fileName))
@@ -60,6 +61,7 @@ def playFrames(fileName):
         else:
           break
     
+        # 割込み再生があるか?
         if voices.get(filePart[0]) and playFrame in voices[filePart[0]]:
             playFrames(os.path.join("out", filePart[0] + "-" + str(playFrame)) + ".wav")
 
@@ -69,11 +71,11 @@ def playFrames(fileName):
         x = np.frombuffer(data, dtype="int16") / 32768.0
     
         # 閾値以上の場合はファイルに保存
-        if False and x.max() > threshold:
+        if x.max() > threshold:
             filename = os.path.join("out", filePart[0] +  "-" +  str(playFrame) + ".wav")
             print(filename)
     
-            # 2秒間の音データを取込
+            # 音データを取込
             all = []
             all.append(data)
             isContinue = True
@@ -84,6 +86,7 @@ def playFrames(fileName):
                 for i in range(0, int(RATE / chunk * int(RECORD_SECONDS))):
                     data = stream.read(chunk)
                     if isContinue == False:
+                        # 録音を継続するか判定
                         # ndarrayに変換
                         x = np.frombuffer(data, dtype="int16") / 32768.0
                         if x.max() > threshold:
@@ -111,4 +114,3 @@ playStream.stop_stream()
 playStream.close()
 
 p.terminate()
-
